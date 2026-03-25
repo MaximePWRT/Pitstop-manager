@@ -1,0 +1,108 @@
+# Pitstop Manager
+
+A real-time pitstop planning and coordination tool for GT3 endurance racing. Designed to be used by a pit wall team across multiple devices simultaneously, with live synchronization via WebSocket.
+
+## Overview
+
+Pitstop Manager helps race engineers and pit crew coordinators plan, schedule, and track pitstops during endurance races. All connected clients share the same state in real time — any change made on one device is instantly reflected on all others.
+
+It also integrates with an ESP32-based hardware penalty timer, allowing the pit wall to arm the exact penalty delay directly from the browser.
+
+## Features
+
+- **Real-time multi-client sync** via Socket.io — multiple devices, one shared view
+- **Three operating modes**:
+  - **Display** — live schedule table showing all upcoming and completed pitstops
+  - **Management** — add, edit, delete pitstops; toggle status between Scheduled / Done
+  - **Configuration** — manage cars, crews, rigs, and pitstop types
+- **Pitstop fields**: car number, target lap, pitstop type, assigned crew, assigned rig, status, penalty duration (seconds)
+- **Penalty / ESP32 integration**: send a penalty delay to an ESP32 hardware timer over HTTP; visual indicator (armed / pending) on each pitstop row
+- **Live clock** displayed in the navigation bar
+- **Export / Import**: save and restore the full race state (config + pitstops) as a JSON file
+- **Lap simulation**: manual lap counter increment for testing
+
+## Tech Stack
+
+| Layer    | Technology                    |
+|----------|-------------------------------|
+| Backend  | Node.js, Express 5, Socket.io |
+| Frontend | Vanilla HTML / CSS / JS       |
+| Protocol | WebSocket (Socket.io)         |
+
+## Project Structure
+
+```
+Pitstop-manager/
+├── server.js          # Express server + Socket.io sync logic
+├── server_WORK.js     # Earlier working version (reference)
+├── package.json
+└── public/
+    ├── index.html     # Single-page application (all views)
+    └── script.js      # All client-side logic
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or later recommended)
+
+### Installation
+
+```bash
+git clone https://github.com/MaximePWRT/Pitstop-manager.git
+cd Pitstop-manager
+npm install
+```
+
+### Run
+
+```bash
+node server.js
+```
+
+Then open `http://localhost:3000` in a browser. Open the same URL on any other device on the same network to join the shared session.
+
+## Configuration
+
+### Cars
+
+Add cars with a number (1–999) and a color label. Colors are used to visually distinguish cars in the schedule table.
+
+Default cars: #30 (light blue), #31 (yellow), #32 (red), #46 (green), #777 (white).
+
+### Crews
+
+Named mechanic crews. Each pitstop can be assigned to one crew.
+
+### Rigs
+
+Named jack/rig sets. Each pitstop can be assigned to one rig.
+
+### Pitstop Types
+
+Fully configurable types with a display name, a short code, and a color category. Default types:
+
+| Code   | Name        | Category |
+|--------|-------------|----------|
+| fuel   | Fuel Only   | fuel     |
+| tires  | Tires Only  | tires    |
+| both   | Fuel + Tires| both     |
+| repair | Repair      | repair   |
+
+## ESP32 Penalty Timer Integration
+
+The **Display** view includes a penalty timer panel that communicates with an ESP32 device over HTTP:
+
+- **GET** `http://<ESP32_IP>/get` — reads the current timer value (ms)
+- **GET** `http://<ESP32_IP>/set?min=X&sec=Y&tenths=Z` — arms the timer with the selected penalty
+
+The default ESP32 IP is configured directly in `index.html`. Pitstop rows with a matching armed penalty show a lightning bolt icon.
+
+## Export / Import
+
+Use the **Export** button to download a timestamped JSON snapshot of the full race state (config + pitstops + current lap). Use **Import** to restore it — this updates all connected clients simultaneously.
+
+## Related Projects
+
+- [Logistic-Timetable](https://github.com/MaximePWRT/Logistic-Timetable) — race event logistics timetable manager
