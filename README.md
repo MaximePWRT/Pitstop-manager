@@ -34,7 +34,6 @@ It also integrates with an ESP32-based hardware penalty timer, allowing the pit 
 ```
 Pitstop-manager/
 ├── server.js          # Express server + Socket.io sync logic
-├── server_WORK.js     # Earlier working version (reference)
 ├── package.json
 └── public/
     ├── index.html     # Single-page application (all views)
@@ -102,6 +101,52 @@ The default ESP32 IP is configured directly in `index.html`. Pitstop rows with a
 ## Export / Import
 
 Use the **Export** button to download a timestamped JSON snapshot of the full race state (config + pitstops + current lap). Use **Import** to restore it — this updates all connected clients simultaneously.
+
+## Raspberry Pi Deployment
+
+The application is designed to run on a Raspberry Pi connected to the WRT race network.
+
+### Network Access
+
+| Connection | URL |
+|------------|-----|
+| Wi-Fi      | `http://10.10.0.186:3000` |
+| Ethernet   | `http://10.10.0.181:3000` |
+
+Open the URL on any device connected to the same network to join the shared session.
+
+### First-Time Setup on Pi
+
+```bash
+git clone https://github.com/MaximePWRT/Pitstop-manager.git
+cd pitstop-manager
+npm install --omit=dev
+```
+
+Install PM2 for process management (autorun on boot):
+
+```bash
+sudo npm install -g pm2
+pm2 start server.js --name pitstop-manager
+pm2 save
+pm2 startup
+# Run the command printed by pm2 startup
+```
+
+### Update Deployment
+
+```bash
+cd ~/pitstop-manager
+git pull origin main
+npm install --omit=dev
+pm2 restart pitstop-manager
+```
+
+### Verify
+
+```bash
+curl http://localhost:3000
+```
 
 ## Related Projects
 
