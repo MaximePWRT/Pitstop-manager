@@ -110,8 +110,8 @@ The application is designed to run on a Raspberry Pi connected to the WRT race n
 
 | Connection | URL |
 |------------|-----|
-| Wi-Fi      | `http://10.10.0.186:3000` |
-| Ethernet   | `http://10.10.0.181:3000` |
+| Wi-Fi      | `http://192.168.47.26:3000` |
+| Ethernet   | `http://192.168.47.27:3000` |
 
 Open the URL on any device connected to the same network to join the shared session.
 
@@ -147,6 +147,61 @@ pm2 restart pitstop-manager
 ```bash
 curl http://localhost:3000
 ```
+
+### Troubleshooting: app does not start on boot
+
+If the interface is not available after reboot, PM2 boot registration is usually missing or was saved under a different user.
+
+```bash
+# 1) Check whether PM2 has the process
+pm2 list
+
+# 2) If missing, start and save it
+cd ~/pitstop-manager
+pm2 start server.js --name pitstop-manager
+pm2 save
+
+# 3) Ensure PM2 is enabled at boot (run as the same user)
+pm2 startup
+# Run the command printed by PM2 (usually with sudo env ...)
+
+# 4) Reboot and verify
+sudo reboot
+# then:
+pm2 list
+curl http://localhost:3000
+```
+
+### TV Fullscreen Auto-Launch on Raspberry Pi (Kiosk)
+
+Starting the Node server is not enough if you want the TV to always show the interface.
+You also need Chromium to auto-open in fullscreen on the Pi desktop session.
+
+Create (or edit) this file:
+
+```bash
+nano ~/.config/lxsession/LXDE-pi/autostart
+```
+
+Add these lines:
+
+```bash
+@xset s off
+@xset -dpms
+@xset s noblank
+@chromium-browser --kiosk --start-fullscreen --noerrdialogs --disable-infobars --app=http://localhost:3000
+```
+
+Then reboot:
+
+```bash
+sudo reboot
+```
+
+Notes:
+- Keep PM2 setup enabled so `server.js` starts at boot.
+- `http://localhost:3000` is recommended on the Pi itself (same machine as Node server).
+- If Chromium is already running in a normal window, close it first before testing kiosk autostart.
 
 ## Related Projects
 
