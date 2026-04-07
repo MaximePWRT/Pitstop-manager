@@ -685,6 +685,36 @@ function tickClock() {
   el.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
+function setupHeaderLayout() {
+  const header = document.querySelector('.header');
+  if (!header) return;
+
+  const firstRow = header.querySelector('div');
+  const logo = firstRow?.querySelector('img');
+  const title = firstRow?.querySelector('h1');
+  const clock = document.getElementById('liveClock');
+  if (!firstRow || !logo || !title || !clock) return;
+
+  const subtitle = header.querySelector('p');
+  if (subtitle) subtitle.remove();
+
+  // Remove racing flag from title as requested.
+  title.textContent = 'PITSTOP MANAGER';
+
+  firstRow.classList.add('header-main-row');
+  logo.classList.add('header-logo');
+  title.classList.add('header-title-right');
+  clock.classList.add('header-clock-center');
+
+  let centerSlot = firstRow.querySelector('.header-center-slot');
+  if (!centerSlot) {
+    centerSlot = document.createElement('div');
+    centerSlot.className = 'header-center-slot';
+    firstRow.insertBefore(centerSlot, title);
+  }
+  centerSlot.appendChild(clock);
+}
+
 function switchMode(button, mode) {
   document.querySelectorAll('.section').forEach((s) => s.classList.remove('active'));
   document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
@@ -1067,6 +1097,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Horloge
   ensureClock();
+  setupHeaderLayout();
   tickClock();
   setInterval(tickClock, 1000);
 
